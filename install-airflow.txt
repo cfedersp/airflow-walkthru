@@ -1,0 +1,28 @@
+Install python 3.9.x
+Later versions may not match existing constraints
+
+export AIRFLOW_HOME=$HOME/opt/airflow
+python3  -m venv local
+source local/bin/activate
+CONSTRAINT_SET=$(python3 --version | egrep -o '\d+.\d+')
+
+pip3 install flask_appbuilder
+pip3 install apache-airflow-providers-fab
+pip3 install flask-mail
+pip3 install "apache-airflow[celery]==3.0.1" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.1/constraints-${CONSTRAINT_SET}.txt"
+or (not tested)
+pip3 install https://files.pythonhosted.org/packages/68/46/59af3aa40b2f26e55ee2208c9c7076c406aadc0d6cbb11c220659987d0e8/apache_airflow-3.0.1-py3-none-any.whl[celery] --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.2/constraints-${CONSTRAINT_SET}.txt"
+
+python3 -m airflow config list --defaults > $AIRFLOW_HOME/airflow.cfg
+Update airflow.cfg:
+'jwt_secret' property must have a value
+Uncomment 'simple_auth_manager_users' so that admin:admin is defined (username:role)
+python3 -m airflow standalone
+The admin pw is generated on first startup
+Visit http:/localhost:8080
+Print the admin pw:
+cat $AIRFLOW_HOME/simple_auth_manager_passwords.json.generated
+
+pip3 freeze > requirements.txt
+next time you activate:
+pip install -r requirements.txt
