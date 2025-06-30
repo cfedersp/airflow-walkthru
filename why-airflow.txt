@@ -1,0 +1,35 @@
+Airflow is a distributed workflow engine. 
+Backends accumulate a lot of custom tasks like:
+"vendor uploads fresh data" then 
+"transform vendor data" then 
+"interpolate it with our own marketing data"
+And
+"transform it again into specific formats required by our publishers"
+
+So you might manage to do all that with Java or .NET services.
+
+Then your business grows and you need scale so you know this is done by dividing the data (perhaps by zip code)
+into managable partitions and process them and different server instances, then recombine it again.
+Except traditional services have no such ability and would require a completely new platform to do so.
+
+Spark/Databricks/AWS Glue can do transformation and compute.. why not use that, you wonder?
+
+Then your boss says he wants an email when a particular set of data is updated 
+and another manager wants to leverage the same pipelie, but processing related to his pet project should take priority.
+Meanwhile you want to break some legacy code into smaller steps so more of it can be reused. 
+Oops! the legal verbiage is out of date, the correct text needs to be inserted in various places immediately 
+and an approval step needs to be added for all new channels!
+
+So you realize even though compute and data transform aspects of the flow may be new to you, they are not the novel challange.
+It's the workflow definition itself that needs a new level of expressiveness.
+
+Task Retry, 
+Ordering guarantee vs priority, 
+Sequential or parallel task sequencing that is composable without changing task implementations
+A dashboard to view task status, 
+Integration with async external systems (like Spark), 
+The ability to deploy as many or as few worker nodes as you need. 
+All in a generic framework.
+
+
+If that scenario is relatable, airflow would shorten your dev effort from writing a billion lines of spaghetti code to a few lines of code within tasks that are managed automatically.
