@@ -10,6 +10,50 @@ DAG:
   + Single Task:(Sensor or Operator)
 + Flow
 
+# Dictionary
+**DAG**: Represents a graph of tasks that represent a workflow.
+**Task**: A step in a workflow. Can be an Operator or a Sensor
+**Operator**:
+**Sensor**: This is a task that polls for a certain condition. It is a wait condition within an existing DAGRun instance, it does not trigger a new job. 
+**DataSet**: This is the Airflow 2.x metaphor for a logical grouping of data. It has been deprecated and replaced in Airflow 3.x with Assets.
+**Asset**: This is the Airflow 3.0 metaphor for an abstract task representing a logical grouping of data that can be referred to by producer and consumer tasks. Assets act as a soft dependency between your workflow and external processes (other DagRuns or unrelated components)
+**Asset Alias**:
+**Asset Outlet**:
+**Asset Producer Task**: this is a task that 
+**Asset Inlet**:
+**Asset Consumer Task**: This is a task that is activated when its inlet asset is created, changed or aliased.
+**Custom Asset**:
+**Connection**:
+**XCOM**:
+**Executor**: The component that queues tasks for execution on worker(s)
+    CeleryExecutor
+    SerialExecutor
+
+# Configuring DAGs:
+- UI Params
+Params appear in the Airflow UI, and can be used to manually trigger DAGs from a web browser, but have nowhere else. Hosted airflow may not support params at all.
+
+- DAG Run Config do not appear in the UI, but can be passed from the command line or REST. 
+    Run Config CLI Usage:
+        airflow trigger_dag --conf {"dealerInventoryFileName": "/path/to/file"} dag_id
+    Run Config Python Usage:
+        dag_run.conf.get("dealerInventoryFileName")
+
+- Jinja Template Variables: Arguments to operators are parsed as jinja templates using predefined variables. 
+    Ex: env="{{ logical_date }}"
+    Doesn't work with @task decorator
+    Templated fields are marked 'templated' in Airflow documentation.
+    Template Reference: https://airflow.apache.org/docs/apache-airflow/stable/templates-ref.html
+
+- Provided vars:
+    dag_run: globals for that particular run instance
+
+# Custom Operators
+Operator has methods: 
+ - pre_execute: performs jinja templating
+ - execute
+ - post_execute: cleanup
+
 What about DataSets? We may want to trigger a job when vendor uploads today's data, which we can't predict.
 Instead of defining sensors and/or a schedule to activate a job, assign a DataSet to the schedule property of a DAG node 
 https://airflow.apache.org/docs/apache-airflow/2.5.0/concepts/datasets.html
@@ -31,16 +75,10 @@ A DAG can be triggered from the UI, Command Line, or REST.
 Can a DAG start a run of another DAG? probably?
 Bottom line is Airflow gives us a 'reactive' platform, but it doesn't react to external events - it reacts to well defined events within itself.
 
-Provided vars:
-dag_run: globals for that particular run instance
 
-Configuring DAGs:
-Params appear in the Airflow UI, and can be used to manually trigger DAGs from a web browser, but have nowhere else. Hosted airflow may not support params at all.
 
-DAG Config do not appear in the UI, but can be passed from the command line or REST. 
-DAG Config usage:
-airflow trigger_dag --conf {"file_variable": "/path/to/file"} dag_id
-dag_run.conf.get("message")
+
+
 
 Config Examples:
 airflow dags trigger --conf '{"warehouseDir": "/tmp", "dateDir": "2025-07-06", "fileName":"inventory.json"}' ProcessFileForDay
