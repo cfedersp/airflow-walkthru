@@ -1,3 +1,8 @@
+# Purpose
+This repo is an introduction to Airflow including a walk though consisting of a series of relatable examples.<br/>
+The official Airflow documentation is extensive, but it does not explain concepts clearly to the uninitiated.<br/>
+DAG inlets and outlets, required method signatures, and the filesystem connector are not explained concisely, so its provided here.<br/>
+
 Tutorials:
 https://airflow.apache.org/docs/apache-airflow/stable/tutorial/fundamentals.html
 
@@ -11,21 +16,23 @@ DAG:
 + Flow
 
 # Dictionary
-**DAG**: Represents a graph of tasks that represent a workflow.<br/>
-**Task**: A step in a workflow. Can be an Operator or a Sensor<br/>
-**Operator**:<br/>
-**Sensor**: This is a task that polls for a certain condition. It is a wait condition within an existing DAGRun instance, it does not trigger a new job. <br/>
-**DataSet**: This is the Airflow 2.x metaphor for a logical grouping of data. It has been deprecated and replaced in Airflow 3.x with Assets.<br/>
-**Asset**: This is the Airflow 3.0 metaphor for an abstract task representing a logical grouping of data that can be referred to by producer and consumer tasks. Assets act as a soft dependency between your workflow and external processes (other DagRuns or unrelated components)<br/>
+**DAG**: A python script that defines a graph of tasks that represent a workflow.<br/>Named by the dag_id attribute or the name of the @dag annotated factory method.
+**DAG Run**: This is an instance of DAG. It can be in 'queued', 'running', 'completed' states.
+**DAG Inlet**:<br/>
+**DAG Outlet**:<br/>
+**Task**: A step in a workflow. Can be an Operator or a Sensor.<br/>
+**Operator**:This is a task within a DAG that executes a method.<br/>
+**Sensor**: This is a task within a DAG that polls an external resource for a condition. It is a wait condition within the workflow- it cannot by itself trigger a new DAG Run. <br/>It is stateless - it does not remember the result of previous polls. <br/>
+**DataSet**: This is the Airflow 2.x concept for a logical grouping of data. It has been deprecated and replaced in Airflow 3.x with Assets.<br/>
+**Asset**: This is the Airflow 3.0 concept for a logical grouping of data that can be referred to by producer and consumer tasks. Assets act as a soft dependency between your workflow and external processes (other DagRuns or unrelated components)<br/>
+An Asset task definition is preprocessed into its own DAG and references to it are automatically changed to the new DAG's inlets or outlets.
 **Asset Alias**:<br/>
-**Asset Outlet**:<br/>
 **Asset Producer Task**: <br/>
-**Asset Inlet**:<br/>
 **Asset Consumer Task**: This is a task that is activated when its inlet asset is created, changed or aliased.<br/>
 **Custom Asset**:<br/>
 **Connection**:<br/>
 **XCOM**:<br/>
-**Executor**: The component that queues tasks for execution on worker(s)<br/>
+**Executor**: This is the pluggable component that queues tasks for execution on worker(s)<br/>
     CeleryExecutor
     SerialExecutor
 
