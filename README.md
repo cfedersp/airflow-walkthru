@@ -11,21 +11,21 @@ DAG:
 + Flow
 
 # Dictionary
-**DAG**: Represents a graph of tasks that represent a workflow.
-**Task**: A step in a workflow. Can be an Operator or a Sensor
-**Operator**:
-**Sensor**: This is a task that polls for a certain condition. It is a wait condition within an existing DAGRun instance, it does not trigger a new job. 
-**DataSet**: This is the Airflow 2.x metaphor for a logical grouping of data. It has been deprecated and replaced in Airflow 3.x with Assets.
-**Asset**: This is the Airflow 3.0 metaphor for an abstract task representing a logical grouping of data that can be referred to by producer and consumer tasks. Assets act as a soft dependency between your workflow and external processes (other DagRuns or unrelated components)
-**Asset Alias**:
-**Asset Outlet**:
-**Asset Producer Task**: this is a task that 
-**Asset Inlet**:
-**Asset Consumer Task**: This is a task that is activated when its inlet asset is created, changed or aliased.
-**Custom Asset**:
-**Connection**:
-**XCOM**:
-**Executor**: The component that queues tasks for execution on worker(s)
+**DAG**: Represents a graph of tasks that represent a workflow.<br/>
+**Task**: A step in a workflow. Can be an Operator or a Sensor<br/>
+**Operator**:<br/>
+**Sensor**: This is a task that polls for a certain condition. It is a wait condition within an existing DAGRun instance, it does not trigger a new job. <br/>
+**DataSet**: This is the Airflow 2.x metaphor for a logical grouping of data. It has been deprecated and replaced in Airflow 3.x with Assets.<br/>
+**Asset**: This is the Airflow 3.0 metaphor for an abstract task representing a logical grouping of data that can be referred to by producer and consumer tasks. Assets act as a soft dependency between your workflow and external processes (other DagRuns or unrelated components)<br/>
+**Asset Alias**:<br/>
+**Asset Outlet**:<br/>
+**Asset Producer Task**: <br/>
+**Asset Inlet**:<br/>
+**Asset Consumer Task**: This is a task that is activated when its inlet asset is created, changed or aliased.<br/>
+**Custom Asset**:<br/>
+**Connection**:<br/>
+**XCOM**:<br/>
+**Executor**: The component that queues tasks for execution on worker(s)<br/>
     CeleryExecutor
     SerialExecutor
 
