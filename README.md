@@ -16,13 +16,25 @@ DAG:
   + Single Task:(Sensor or Operator)
 + Flow
 
+# Dag and Task Scheduling
+Ways the Scheduler will instantiate a DAG:
+Manually through the UI.
+Manually through the Command Line
+REST call
+schedule (DAG attribute)
+schedule_interval (DAG attribute)
+Asset Watcher (Assets are global).
+
+Tasks are chained using chain(*args) method or the bitshift >> operator.
+In general, downstream tasks get activated when all upstream tasks complete - but if a successor task has an empty Asset inlet, it will also wait for that Asset to produce an event.
+
 # Dictionary
 **Airflow Providers**: A provider is a python package that supplies integration with a cloud provider. Ex: S3 Object Store is accessed with the AWS provider package. The provider package is a dependency that must be installed and a S3 Connection must be provided before S3 can be accessed from a DAG.
 **DAG**: A python script that defines a graph of tasks that represent a workflow.<br/>Named by the dag_id attribute or the name of the @dag annotated factory method.
 **DAG Folder**: This is the directory within the Airflow scheduler where ad-hoc DAGs are parsed and ingested into the Airflow database. Airflow ingests new DAGs every 30 seconds. This folder is useful for local development, but production should use DAG Bundles or enable a git plugin to read versioned DAGs.
 **DAG Bundle**:
 **DAG Run**: This is an instance of a DAG. It can be in 'queued', 'running', 'paused', 'completed' states. A triggered dag may start in 'paused' state and will proceed by unpausing it either from the command line or the UI.
-**DAG Schedule**: 'schedule' is an attribute of DAGs. It 
+**DAG Schedule**: 'schedule' and 'schedule_interval' are attributes of a DAG. 'schedule' can be a cron, timedelta, timetable, or Asset Watcher. Airflow 2.x allowed Dataset in the schedule attribute, but that is now deprecated.
 **DAG Bag**:<br/>
 **DAG Bundle**:https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/dag-bundles.html<br/>
 **Task**: A step in a workflow. Can be an Operator or a Sensor.<br/>
@@ -37,7 +49,7 @@ DAG:
 **Asset Alias**:<br/>
 **Asset Producer Task**: <br/>
 **Asset Consumer Task**: This is a task that is activated when its inlet asset is created, changed or aliased.<br/>
-**Asset Watcher**: An asset by itself cannot trigger a DAG. Only when the Asset includes a watcher. Read Event-driven Scheduling for more information: https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/event-scheduling.html
+**Asset Watcher**: An asset by itself cannot trigger a DAG. Only when the Asset includes a watcher. An Asset Watcher exists outside any DAGs and may trigger a DAG by an file create or update or an event from a message queue. Read Event-driven Scheduling for more information: https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/event-scheduling.html
 **Custom Asset**:<br/>
 **Connection**: A Connection provides integration details, including hostname and credentials for external systems. Different types support uri schemes. Connections can be provided in the UI or as environment variables. Even the local filesystem provider must be specified as a Connection or you will see an <br/>
 **Hooks**: A Hook builds off a particular Connection and provides a consistent interface for interacting with it. Example?
