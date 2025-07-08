@@ -4,6 +4,9 @@ The official Airflow documentation is extensive, but it does little to help the 
 The Quickstart isn't helpful in evaluating Airflow professionally.
 DAG inlets and outlets, required method signatures, and the filesystem connector are not explained concisely, so these concepts and others are provided here to absorb at a glance.<br/>
 
+# Parsing vs Instantiating vs Running
+DAGs are defined in python, but you cannot consistently interact with global scope python variables (runs on scheduler) within a Task method (run on workers). dag_run.conf is not available outside an operator or sensor attribute. The dag Resource only has attributes related to scheduling. A global scope variable can only be used in an attribute at time of **parsing**, not when the DAG Run is instantiated. 
+
 Tutorials:
 https://airflow.apache.org/docs/apache-airflow/stable/tutorial/fundamentals.html
 
@@ -25,8 +28,13 @@ schedule (DAG attribute)
 schedule_interval (DAG attribute)
 Asset Watcher (Assets are global).
 
-Tasks are chained using chain(*args) method or the bitshift >> operator.
+Tasks are chained using chain(*args) method or the bitshift >> operator. Join multiple upstream tasks in using chain by giving an array of tasks or if using >> give the same task instance multiple times.
 In general, downstream tasks get activated when all upstream tasks complete - but if a successor task has an empty Asset inlet, it will also wait for that Asset to produce an event.
+
+# FileSensor vs Asset vs AssetWatcher:
+FileSensor checks for existence of a file. filepath attribute does not require scheme.
+Asset emits events related to a dataset (may be file, may be something else) that activate asset consumer tasks. Asset uri requires scheme.
+Asset Watcher is an Asset with the watcher attribute and triggers a DAG.
 
 # Dictionary
 **Airflow Providers**: A provider is a python package that supplies integration with a cloud provider. Ex: S3 Object Store is accessed with the AWS provider package. The provider package is a dependency that must be installed and a S3 Connection must be provided before S3 can be accessed from a DAG.
@@ -88,6 +96,8 @@ AirflowNotFoundException: The conn_id `fs_default` isn't defined
 Make sure you created a filesytem Connection in your Airflow runtime environment or Airflow UI.
 airflow connections add 'fs_default' --conn-type 'fs'
 
+FileSensor immediately succeeds when file given by filepath attribute does not exist:
+FileSensor does not need @task.sensor decorator. @task.sensor is used to define a custom PokeReturnValue
 
 What about DataSets? We may want to trigger a job when vendor uploads today's data, which we can't predict.
 Instead of defining sensors and/or a schedule to activate a job, assign a DataSet to the schedule property of a DAG node 
@@ -114,9 +124,14 @@ Bottom line is Airflow gives us a 'reactive' platform, but it doesn't react to e
 
 
 
+Deploy new DAG:
+cp config-workflow/file-sensor.py $AIRFLOW_HOME/dags/
+
+Delete DAG metadata from DB:
+airflow dags delete ProcessFileForDay
 
 Config Examples:
-airflow dags trigger --conf '{"warehouseDir": "/tmp", "dateDir": "2025-07-06", "fileName":"inventory.json"}' ProcessFileForDay
+airflow dags trigger --conf '{"warehouseDir": "/tmp", "dateDir": "2025-07-08", "fileName":"inventory.json"}' ProcessFileForDay
 airflow dags unpause ProcessFileForDay
 AirflowNotFoundException: The conn_id `fs_default` isn't defined
 Make sure you created a filesytem connection
