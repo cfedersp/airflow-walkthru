@@ -20,6 +20,9 @@ Uncomment 'simple_auth_manager_users' so that admin:admin is defined (username:r
 # Create Connections using env vars
 airflow connections add 'fs_default' --conn-type 'fs'
 
+# Show the current Executor:
+airflow config get-value core executor
+
 python3 -m airflow standalone
 The admin pw is generated on first startup
 Visit http:/localhost:8080
