@@ -4,20 +4,22 @@ The official Airflow documentation is extensive, but it does little to help the 
 The Quickstart isn't helpful in evaluating Airflow professionally.
 DAG inlets and outlets, required method signatures, and the filesystem connector are not explained concisely, so these concepts and others are provided here to absorb at a glance.<br/>
 
-# Parsing vs Instantiating vs Running
-DAGs are defined in python, but you cannot consistently interact with global scope python variables (runs on scheduler) within a Task method (run on workers). dag_run.conf is not available outside an operator or sensor attribute. The dag Resource only has attributes related to scheduling. A global scope variable can only be used in an attribute at time of **parsing**, not when the DAG Run is instantiated. 
+# Parsing vs Instantiating vs Task Execution
+DAGs are defined in python, but you cannot consistently write and read global scope python variables (runs on the scheduler) within Task factory methods (run on workers). dag_run.conf is not available outside an operator or sensor attribute. The dag Resource only has attributes related to scheduling. A global scope variable can only be used in an attribute at time of **parsing**, not when the DAG Run is instantiated or executed.
 
 Tutorials:
 https://airflow.apache.org/docs/apache-airflow/stable/tutorial/fundamentals.html
 
 DAG consists of 2 things: DAG Nodes and a flow
-A single DAG Node has attributes and a task(operators, Sensors)
+A single DAG Node has attributes and a task(operators or Sensors)
 A Task can be an Operator or a Sensor
 DAG:
-+ DAG Nodes
-  + attributes
-  + Single Task:(Sensor or Operator)
-+ Flow
++ Dag Scheduling Attributes
++ Assets (data] [asset watcher]
++ DAG Nodes (Tasks)
+  + Task attributes
+  + Task Impl:(Sensor or Operator)
++ Flow (Sequence of Tasks)
 
 # Dag and Task Scheduling
 Ways the Scheduler will instantiate a DAG:
@@ -40,7 +42,6 @@ Asset Watcher is an Asset with the watcher attribute and triggers a DAG.
 **Airflow Providers**: A provider is a python package that supplies integration with a cloud provider. Ex: S3 Object Store is accessed with the AWS provider package. The provider package is a dependency that must be installed and a S3 Connection must be provided before S3 can be accessed from a DAG.
 **DAG**: A python script that defines a graph of tasks that represent a workflow.<br/>Named by the dag_id attribute or the name of the @dag annotated factory method.
 **DAG Folder**: This is the directory within the Airflow scheduler where ad-hoc DAGs are parsed and ingested into the Airflow database. Airflow ingests new DAGs every 30 seconds. This folder is useful for local development, but production should use DAG Bundles or enable a git plugin to read versioned DAGs.
-**DAG Bundle**:
 **DAG Run**: This is an instance of a DAG. It can be in 'queued', 'running', 'paused', 'completed' states. A triggered dag may start in 'paused' state and will proceed by unpausing it either from the command line or the UI.
 **DAG Schedule**: 'schedule' and 'schedule_interval' are attributes of a DAG. 'schedule' can be a cron, timedelta, timetable, or Asset Watcher. Airflow 2.x allowed Dataset in the schedule attribute, but that is now deprecated.
 **DAG Bag**:<br/>
@@ -63,8 +64,10 @@ Asset Watcher is an Asset with the watcher attribute and triggers a DAG.
 **Hooks**: A Hook builds off a particular Connection and provides a consistent interface for interacting with it. Example?
 **XCOM**:<br/>
 **Executor**: This is the pluggable component that queues tasks for execution on worker(s)<br/>
+    LocalExecutor
     CeleryExecutor
     SerialExecutor
+    Kubernetes Executor
 
 # Configuring DAGs:
 - UI Params
@@ -97,7 +100,8 @@ Make sure you created a filesytem Connection in your Airflow runtime environment
 airflow connections add 'fs_default' --conn-type 'fs'
 
 FileSensor immediately succeeds when file given by filepath attribute does not exist:
-FileSensor does not need @task.sensor decorator. @task.sensor is used to define a custom PokeReturnValue
+Sensor is setup incorrectly.
+Dont use the decorators like @task and @task.sensor as factory methods. The decorators are used to define a custom Tasks. Those methods are called by a PythonOperator that is serialized and run on workers. @task.sensor annotated method doesn't return a sensor - it IS THE SENSOR and must return PokeReturnValue.
 
 What about DataSets? We may want to trigger a job when vendor uploads today's data, which we can't predict.
 Instead of defining sensors and/or a schedule to activate a job, assign a DataSet to the schedule property of a DAG node 
@@ -112,19 +116,7 @@ python3 my-dag.py
 Deploy:
 $AIRFLOW_HOME/airflow.cfg specifies the location of a folder for dags that get automatically loaded.
 By default, this folder is $AIRFLOW_HOME/dags. Copy your python script there, refresh the dag list after a minute.
-
-Running Workflows:
-DAGs can include Tasks (Sensors, Operators)
-A DAG must already be running for any of those to actually work.
-A DAG can be triggered from the UI, Command Line, or REST.
-Can a DAG start a run of another DAG? probably?
-Bottom line is Airflow gives us a 'reactive' platform, but it doesn't react to external events - it reacts to well defined events within itself.
-
-
-
-
-
-Deploy new DAG:
+Example:
 cp config-workflow/file-sensor.py $AIRFLOW_HOME/dags/
 
 Delete DAG metadata from DB:

@@ -1,19 +1,31 @@
 Install python 3.9.x
 Later versions may not match existing constraints
 
+# Define and Create a dir for Airflow to store its Configuration, development DAGs, DB, and Users.
+# Should be outside this repo.
 export AIRFLOW_HOME=$HOME/opt/airflow
+mkdir -p $AIRFLOW_HOME
+
+# Create an isolated python environment for your Airflow project:
 python3 -m venv local
+
+# Have 2 Terminals open with the python environment active
 source local/bin/activate
+
+# Airflow requirements depend on the version of python. The Constraint Set dictates the package versions for all required libs.
 CONSTRAINT_SET=$(python3 --version | egrep -o '\d+.\d+')
 
 pip3 install "apache-airflow[celery]==3.0.1" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.1/constraints-${CONSTRAINT_SET}.txt"
 or (not tested)
 pip3 install https://files.pythonhosted.org/packages/68/46/59af3aa40b2f26e55ee2208c9c7076c406aadc0d6cbb11c220659987d0e8/apache_airflow-3.0.1-py3-none-any.whl[celery] --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.2/constraints-${CONSTRAINT_SET}.txt"
 
+# Install Optional dependencies:
 pip3 install graphviz
 
+# Write the default config to AIRFLOW_HOME:
 python3 -m airflow config list --defaults > $AIRFLOW_HOME/airflow.cfg
-Update airflow.cfg:
+
+# Update airflow.cfg:
 'jwt_secret' property must have a value
 Uncomment 'simple_auth_manager_users' so that admin:admin is defined (username:role)
 
