@@ -138,6 +138,9 @@ inlet-asset-names are not positional args! The annotation is re-written as @task
 Asset events: [on_asset_created, on_asset_changed, on_asset_alias_created]
 Get asset event trigger(s) within a consumer: context["inlet_events"][asset1]
 
+Trigger: 
+This is similar to an Sensor, but it executed in a single **trigggerer** instead of a worker, freeing up atask-slot until the trigger returns an event.
+
 Using FileSensor & Asset together:
 FileSensor is limited to answering 1 of 2 questions:
 Dir: Are there any files in that directory?
