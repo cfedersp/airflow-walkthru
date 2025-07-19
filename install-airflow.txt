@@ -15,14 +15,20 @@ source local/bin/activate
 # Airflow requirements depend on the version of python. The Constraint Set dictates the package versions for all required libs.
 CONSTRAINT_SET=$(python3 --version | egrep -o '\d+.\d+')
 
-pip3 install "apache-airflow[celery]==3.0.1" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.1/constraints-${CONSTRAINT_SET}.txt"
+local/bin/python3 -m pip install "apache-airflow[celery]==3.0.1" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.1/constraints-${CONSTRAINT_SET}.txt"
 or (not tested)
-pip3 install https://files.pythonhosted.org/packages/68/46/59af3aa40b2f26e55ee2208c9c7076c406aadc0d6cbb11c220659987d0e8/apache_airflow-3.0.1-py3-none-any.whl[celery] --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.2/constraints-${CONSTRAINT_SET}.txt"
+local/bin/python3 -m pip install https://files.pythonhosted.org/packages/68/46/59af3aa40b2f26e55ee2208c9c7076c406aadc0d6cbb11c220659987d0e8/apache_airflow-3.0.1-py3-none-any.whl[celery] --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.2/constraints-${CONSTRAINT_SET}.txt"
 
 # Install Optional dependencies:
-pip3 install graphviz
-pip3 install apache-airflow-providers-common-messaging
-pip3 install apache-airflow-providers-redis
+local/bin/python3 -m pip install graphviz
+local/bin/python3 -m pip install apache-airflow-providers-common-messaging
+local/bin/python3 -m pip install apache-airflow-providers-redis
+
+# Check required dependencies are in your environment
+local/bin/python3 -m pip show apache-airflow-providers-common-messaging
+find local -name '*.py' | xargs fgrep MessageQueueTrigger  
+local/bin/python3 -m pip show apache-airflow-providers-redis
+find local -name '*.py' | xargs fgrep RedisMessageQueueTrigger 
 
 # Write the default config to AIRFLOW_HOME:
 python3 -m airflow config list --defaults > $AIRFLOW_HOME/airflow.cfg
@@ -39,7 +45,7 @@ airflow connections add 'redis' --conn-type 'redis' --conn-description 'Staging 
 # Show the current Executor:
 airflow config get-value core executor
 
-python3 -m airflow standalone
+local/bin/python3 -m airflow standalone
 The admin pw is generated on first startup
 Visit http:/localhost:8080
 Print the admin pw:
@@ -48,3 +54,13 @@ cat $AIRFLOW_HOME/simple_auth_manager_passwords.json.generated
 pip3 freeze > requirements.txt
 next time you activate:
 pip install -r requirements.txt
+
+
+Reference:
+https://www.astronomer.io/docs/learn/airflow-event-driven-scheduling/
+Event-driven scheduling in Airflow 3.0 is supported for Amazon SQS with support for other message queues planned for future releases.
+Queue Providers:
+SQS:
+Kafka: https://airflow.apache.org/docs/apache-airflow-providers-apache-kafka/stable/message-queues/index.html
+Redis:
+Custom: https://airflow.apache.org/docs/apache-airflow-providers-common-messaging/stable/_api/airflow/providers/common/messaging/providers/base_provider/index.html#classes
