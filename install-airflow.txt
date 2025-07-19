@@ -21,6 +21,8 @@ pip3 install https://files.pythonhosted.org/packages/68/46/59af3aa40b2f26e55ee22
 
 # Install Optional dependencies:
 pip3 install graphviz
+pip3 install apache-airflow-providers-common-messaging
+pip3 install apache-airflow-providers-redis
 
 # Write the default config to AIRFLOW_HOME:
 python3 -m airflow config list --defaults > $AIRFLOW_HOME/airflow.cfg
@@ -31,6 +33,8 @@ Uncomment 'simple_auth_manager_users' so that admin:admin is defined (username:r
 
 # Create Connections using env vars
 airflow connections add 'fs_default' --conn-type 'fs'
+airflow connections add 'redis' --conn-type 'redis' --conn-description 'Staging Redis' --conn-host 'redis-host.company.com' --conn-port 6383 
+# --conn-extra 'db=0'
 
 # Show the current Executor:
 airflow config get-value core executor
