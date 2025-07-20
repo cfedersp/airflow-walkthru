@@ -6,62 +6,83 @@ Later versions may not match existing constraints
 export AIRFLOW_HOME=$HOME/opt/airflow
 mkdir -p $AIRFLOW_HOME
 
+# Optionally, which global python and pip, upgrade pip and Check whats available
+python3 -m pip install --upgrade pip
+python3 -m pip index versions apache-airflow
+
+# Set Airflow version and python env name
+AIRFLOW_VERSION="3.0.1"
+VENV_NAME="aaf${AIRFLOW_VERSION}"
+
 # Create an isolated python environment for your Airflow project:
-python3 -m venv local
+python3 -m venv ${VENV_NAME}
 
 # Have 2 Terminals open with the python environment active
-source local/bin/activate
+source ${VENV_NAME}/bin/activate
+alias python="${VENV_NAME}/bin/python"
+alias python3="python"
+
+
 
 # Airflow requirements depend on the version of python. The Constraint Set dictates the package versions for all required libs.
-CONSTRAINT_SET=$(python3 --version | egrep -o '\d+.\d+')
 
-local/bin/python3 -m pip install "apache-airflow[celery]==3.0.1" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.1/constraints-${CONSTRAINT_SET}.txt"
+CONSTRAINT_SET=$(python --version | egrep -o '\d+.\d+')
+
+# skip celery for now
+python -m pip install "apache-airflow[amazon]==${AIRFLOW_VERSION}" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${CONSTRAINT_SET}.txt"
 or (not tested)
-local/bin/python3 -m pip install https://files.pythonhosted.org/packages/68/46/59af3aa40b2f26e55ee2208c9c7076c406aadc0d6cbb11c220659987d0e8/apache_airflow-3.0.1-py3-none-any.whl[celery] --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.2/constraints-${CONSTRAINT_SET}.txt"
+python -m pip install https://files.pythonhosted.org/packages/68/46/59af3aa40b2f26e55ee2208c9c7076c406aadc0d6cbb11c220659987d0e8/apache_airflow-3.0.1-py3-none-any.whl[celery] --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.2/constraints-${CONSTRAINT_SET}.txt"
 
 # Install Optional dependencies:
-local/bin/python3 -m pip install graphviz
-local/bin/python3 -m pip install apache-airflow-providers-common-messaging
-local/bin/python3 -m pip install apache-airflow-providers-redis
-local/bin/python3 -m pip install apache-airflow-providers-amazon
+python -m pip install graphviz
+python -m pip install flask_appbuilder
+python -m pip install apache-airflow-providers-common-messaging
+# python -m pip install apache-airflow-providers-redis
+# python -m pip install apache-airflow-providers-amazon
 
 
 # Check required dependencies are in your environment
-local/bin/python3 -m pip show apache-airflow-providers-common-messaging
-find local -name '*.py' | xargs fgrep MessageQueueTrigger  
-local/bin/python3 -m pip show apache-airflow-providers-redis
-find local -name '*.py' | xargs fgrep RedisMessageQueueTrigger 
+python -m pip show apache-airflow-providers-common-messaging
+find ${VENV_NAME} -name '*.py' | xargs fgrep MessageQueueTrigger  
+python -m pip show apache-airflow-providers-redis
+find ${VENV_NAME} -name '*.py' | xargs fgrep RedisMessageQueueTrigger 
 
 # Write the default config to AIRFLOW_HOME:
-python3 -m airflow config list --defaults > $AIRFLOW_HOME/airflow.cfg
+python -m airflow config list --defaults > $AIRFLOW_HOME/airflow.cfg
 
 # Update airflow.cfg:
 'jwt_secret' property must have a value
 Uncomment 'simple_auth_manager_users' so that admin:admin is defined (username:role)
 
 # Create Connections using env vars
-local/bin/python3 -m airflow connections create-default-connections
-local/bin/python3 -m airflow connections add 'fs_default' --conn-type 'fs'
-local/bin/python3 -m airflow connections add 'redis' --conn-type 'redis' --conn-description 'Staging Redis' --conn-host 'redis-host.company.com' --conn-port 6383 
+python -m airflow connections create-default-connections
+python -m airflow connections add 'fs_default' --conn-type 'fs'
+python -m airflow connections add 'redis' --conn-type 'redis' --conn-description 'Staging Redis' --conn-host 'redis-host.company.com' --conn-port 6383 
 # --conn-extra 'db=0'
 aws configure sso
+aws configure list-profiles
 aws sqs create-queue --queue-name CJF_EPSILON_REVIEW_QUEUE --region us-west-2  --profile identity-center-user-profile
 # DO NOT MODIFY the aws_default connection, except to optionally add aws_region! The aws python sdk (boto3) knows where to find your credentials.
 # "QueueUrl": "https://sqs.us-west-2.amazonaws.com/339713066603/CJF_EPSILON_REVIEW_QUEUE"
 
 # Show the current Executor:
-airflow config get-value core executor
+python -m airflow config get-value core executor
 
-local/bin/python3 -m airflow standalone
+# standalone includes the triggerer process?
+python -m airflow standalone
+python -m airflow triggerer
 The admin pw is generated on first startup
 Visit http:/localhost:8080
-Print the admin pw:
+Print the admin pw and paste into login screen
 cat $AIRFLOW_HOME/simple_auth_manager_passwords.json.generated
 
-local/bin/python3 -m pip freeze > requirements.txt
+# CHECK ALL COMPONENTS ARE GREEN IN UI: MetaDatabase, Scheduler, Triggerer, DAG Processor
+# Click 'Admin' -> Providers, ensure amazon and common-messaging are included.
+
+python -m pip freeze > requirements.txt
 next time you activate:
-source local/bin/activate
-local/bin/python3 -m pip install -r requirements.txt
+source ${VENV_NAME}/bin/activate
+python -m pip install -r requirements.txt
 
 
 Reference:

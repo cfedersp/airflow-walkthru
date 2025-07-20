@@ -110,6 +110,17 @@ https://airflow.apache.org/docs/apache-airflow/2.5.0/concepts/datasets.html
 What if i dont want to declare the execution flow? How to do imperatively? 
 TaskFlow: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/taskflow.html
 
+## Issue:
+Trigger doesn't run
+## Solution:
+Make sure the triggerer process is running. It is included in standalone.
+Enable the DAG
+
+## Issue:
+Trigger ID 2 exited with error No module named 'aiobotocore'
+Trigger exited without sending an event. Dependent tasks will be failed.
+## Solution: ??
+
 Validate:
 python3 my-dag.py
 
@@ -270,3 +281,6 @@ Purpose: XCOM, short for Cross-Communication, allows for the transfer of small a
 Purpose: An Executor handles the scheduling and running of tasks. It determines how Airflow distributes and executes tasks across available resources, supporting scalable and efficient workflow execution. Executors range from simple (SequentialExecutor) to distributed (CeleryExecutor).
 These components come together to form a robust platform for orchestrating, scheduling, and monitoring complex workflows, allowing for flexibility and efficiency in managing data pipelines and other automation tasks.
  
+
+
+
