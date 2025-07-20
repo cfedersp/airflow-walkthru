@@ -23,6 +23,8 @@ local/bin/python3 -m pip install https://files.pythonhosted.org/packages/68/46/5
 local/bin/python3 -m pip install graphviz
 local/bin/python3 -m pip install apache-airflow-providers-common-messaging
 local/bin/python3 -m pip install apache-airflow-providers-redis
+local/bin/python3 -m pip install apache-airflow-providers-amazon
+
 
 # Check required dependencies are in your environment
 local/bin/python3 -m pip show apache-airflow-providers-common-messaging
@@ -38,9 +40,14 @@ python3 -m airflow config list --defaults > $AIRFLOW_HOME/airflow.cfg
 Uncomment 'simple_auth_manager_users' so that admin:admin is defined (username:role)
 
 # Create Connections using env vars
-airflow connections add 'fs_default' --conn-type 'fs'
-airflow connections add 'redis' --conn-type 'redis' --conn-description 'Staging Redis' --conn-host 'redis-host.company.com' --conn-port 6383 
+local/bin/python3 -m airflow connections create-default-connections
+local/bin/python3 -m airflow connections add 'fs_default' --conn-type 'fs'
+local/bin/python3 -m airflow connections add 'redis' --conn-type 'redis' --conn-description 'Staging Redis' --conn-host 'redis-host.company.com' --conn-port 6383 
 # --conn-extra 'db=0'
+aws configure sso
+aws sqs create-queue --queue-name CJF_EPSILON_REVIEW_QUEUE --region us-west-2  --profile identity-center-user-profile
+# DO NOT MODIFY the aws_default connection, except to optionally add aws_region! The aws python sdk (boto3) knows where to find your credentials.
+# "QueueUrl": "https://sqs.us-west-2.amazonaws.com/339713066603/CJF_EPSILON_REVIEW_QUEUE"
 
 # Show the current Executor:
 airflow config get-value core executor
@@ -51,9 +58,10 @@ Visit http:/localhost:8080
 Print the admin pw:
 cat $AIRFLOW_HOME/simple_auth_manager_passwords.json.generated
 
-pip3 freeze > requirements.txt
+local/bin/python3 -m pip freeze > requirements.txt
 next time you activate:
-pip install -r requirements.txt
+source local/bin/activate
+local/bin/python3 -m pip install -r requirements.txt
 
 
 Reference:

@@ -139,7 +139,7 @@ Asset events: [on_asset_created, on_asset_changed, on_asset_alias_created]
 Get asset event trigger(s) within a consumer: context["inlet_events"][asset1]
 
 Trigger: 
-This is similar to an Sensor, but it executed in a single **trigggerer** instead of a worker, freeing up atask-slot until the trigger returns an event.
+This is similar to an Sensor, but it executed in a single **trigggerer** instead of a worker, freeing up atask-slot until the trigger returns an event. Identical Sensors can exist in multiple DAGs taking up multiple task-slots, each acting as its own 'gate', but a multiple identical triggers will only exist as a single wait loop for the entire cluster.
 
 Using FileSensor & Asset together:
 FileSensor is limited to answering 1 of 2 questions:
