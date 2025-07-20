@@ -1,6 +1,6 @@
 from airflow.sdk import Asset
 # from airflow.providers.redis import RedisMessageQueueTrigger
-# from airflow.providers.common.messaging.triggers.msg_queue import MessageQueueTrigger
+from airflow.providers.common.messaging.triggers.msg_queue import MessageQueueTrigger
 from airflow.providers.amazon.aws.triggers.sqs import SqsSensorTrigger
 from airflow.sdk import dag, task, AssetWatcher
 from airflow.decorators import task
@@ -12,7 +12,7 @@ import pendulum
 
 # SQS_QUEUE_URL="https://sqs.us-west-2.amazonaws.com/339713066603/CJF_EPSILON_REVIEW_QUEUE"
 # aws sqs send-message --queue-url $SQS_QUEUE_URL --message-body "{'reviewType':1111111,'sid':'348938943348','status':'CREATED'}" --profile identity-center-user-profile
-sqsTrigger = SqsSensorTrigger(aws_conn_id="aws_default", waiter_delay=30, sqs_queue="https://sqs.us-west-2.amazonaws.com/339713066603/CJF_EPSILON_REVIEW_QUEUE")
+sqsTrigger = MessageQueueTrigger(aws_conn_id="aws_default", waiter_delay=30, queue="https://sqs.us-west-2.amazonaws.com/339713066603/CJF_EPSILON_REVIEW_QUEUE")
 # max_messages
 
 queueWatcher = Asset("review_queue_asset", watchers=[
