@@ -56,10 +56,18 @@ python -m airflow config list --defaults > $AIRFLOW_HOME/airflow.cfg
 'jwt_secret' property must have a value
 Uncomment 'simple_auth_manager_users' so that admin:admin is defined (username:role)
 
+# Setup JDBC Driver
+echo "[providers.jdbc] >> $AIRFLOW_HOME/airflow.cfg
+echo "allow_driver_path_in_extra = True" >> $AIRFLOW_HOME/airflow.cfg
+echo "allow_driver_class_in_extra = True" >> $AIRFLOW_HOME/airflow.cfg
+mkdir $AIRFLOW_HOME/lib
+cp Downloads/ojdbc11-23.8.0.25.04.jar $AIRFLOW_HOME/lib
+
 # Create Connections using env vars
 python -m airflow connections create-default-connections
 python -m airflow connections add 'fs_default' --conn-type 'fs'
-python -m airflow connections add 'mysql' --conn-type 'jdbc' --conn-description 'Local DB' --conn-host 'localhost' --conn-port 3306 --conn-login root --conn-password password 
+python -m airflow connections add 'oracle' --conn-description 'Oracle DB' --conn-uri 'jdbc:oracle:thin:cfederspiel/ocPamBdxbqM7197%@//d1entp-scan.res.prod.global:1521/D1SFRC_BATCH' --conn-extra '{"driver_path":"lib/","driver_class":"oracle.jdbc.OracleDriver"}'
+python -m airflow connections add 'mysql' --conn-type 'jdbc' --conn-description 'Local DB' --conn-host 'localhost' --conn-port 3306 --conn-login root --conn-password password --conn-extra '{"driver_path":"lib/","driver_class":"oracle.jdbc.OracleDriver"}'
 
 python -m airflow connections add 'redis' --conn-type 'redis' --conn-description 'Staging Redis' --conn-host 'redis-host.company.com' --conn-port 6383 
 # --conn-extra 'db=0'
@@ -73,6 +81,10 @@ create database searchforce;
 use searchforce;
 CREATE TABLE REVIEW_QUEUE (SID int PRIMARY KEY, REVIEW_TYPE int, DESCRIPTION VARCHAR(200), STATUS varchar(20), AIRFLOW_INGESTED_DATE DATE, CREATED_DATE DATE);
 
+# Create Oracle DB
+CREATE TABLE cfederspiel.REVIEW_QUEUE (SID int PRIMARY KEY, REVIEW_TYPE int, DESCRIPTION VARCHAR(200), STATUS varchar(20), AIRFLOW_INGESTED_DATE DATE, CREATED_DATE DATE);
+INSERT INTO cfederspiel.REVIEW_QUEUE (SID, REVIEW_TYPE, DESCRIPTION, STATUS, CREATED_DATE) values (1111, 222222, 'Ready Campaign1', 'READY', SYSDATE)
+
 # Post some data
 aws configure sso
 aws configure list-profiles
@@ -83,6 +95,7 @@ aws sqs create-queue --queue-name CJF_EPSILON_REVIEW_QUEUE --region us-west-2  -
 
 # Show the current Executor:
 python -m airflow config get-value core executor
+python -m  airflow config get-value providers.jdbc allow_driver_path_in_extra
 
 # standalone includes the triggerer process
 python -m airflow standalone
@@ -100,6 +113,10 @@ next time you activate:
 source ${VENV_NAME}/bin/activate
 python -m pip install -r requirements.txt
 
+# Troubleshooting Config:
+python -m  airflow config get-value providers.jdbc allow_driver_path_in_extra
+View config in Admin Console:
+Add expose_config = True under [webserver]
 
 Reference:
 https://www.astronomer.io/docs/learn/airflow-event-driven-scheduling/

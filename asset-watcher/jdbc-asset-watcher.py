@@ -14,11 +14,12 @@ from airflow.models.baseoperator import BaseOperator
 
 
 class JDBCTableTrigger(BaseEventTrigger):
-    def __init__(self, jdbc_conn_id, ingest_select, interval_seconds, update_statement, bind_values=()):
+    def __init__(self, jdbc_conn_id, ingest_select, interval_seconds, id_column, update_statement, bind_values=()):
         super().__init__()
         self.jdbc_conn_id = jdbc_conn_id;
         self.ingest_select = ingest_select;
         self.interval_seconds = interval_seconds;
+        self.id_column = id_column;
         self.update_statement = update_statement;
         self.bind_values = bind_values;
         # TODO: validate:
@@ -27,7 +28,7 @@ class JDBCTableTrigger(BaseEventTrigger):
         # bind values must be a tuple or a list
 
     def serialize(self) -> tuple[str, dict[str, Any]]:
-        triggerParams = {"jdbc_conn_id": self.jdbc_conn_id, "ingest_select": self.ingest_select, "interval_seconds": self.interval_seconds, "update_statement": self.update_statement, "bind_values": self.bind_values };
+        triggerParams = {"jdbc_conn_id": self.jdbc_conn_id, "ingest_select": self.ingest_select, "interval_seconds": self.interval_seconds, "id_column": self.id_column, "update_statement": self.update_statement, "bind_values": self.bind_values };
         return ("jdbc-asset-watcher.JDBCTableTrigger", triggerParams );
 
 
@@ -42,9 +43,10 @@ class JDBCTableTrigger(BaseEventTrigger):
 
             results = cursor.fetchall()
             for row in results:
+                print("reading row from db");
                 row_dict = dict(zip(column_names, row))
                 idValue = row_dict[self.id_column];
-                cursor.execute(self.update_statement, self.bind_values);
+                cursor.execute(self.update_statement, (idValue, ));
                 conn.commit();
                 yield TriggerEvent(row_dict);
                 return;
@@ -56,8 +58,8 @@ class JDBCTableTrigger(BaseEventTrigger):
         return hashlib.md5(classpath + self.serialize());
 
 
-
-sqlTrigger = JDBCTableTrigger(jdbc_conn_id="mysql", interval_seconds=30, ingest_select="select SID, REVIEW_TYPE, STATUS, AIRFLOW_INGESTED_DATE, CREATED_DATE from searchforce.REVIEW_QUEUE", update_statement="UPDATE searchforce.REVIEW_QUEUE set AIRFLOW_INGESTED_DATE=NOW()")
+database = "cfederspiel"
+sqlTrigger = JDBCTableTrigger(jdbc_conn_id="oracle", interval_seconds=30, ingest_select=f"select SID, REVIEW_TYPE, STATUS, AIRFLOW_INGESTED_DATE, CREATED_DATE from {database}.REVIEW_QUEUE", id_column="SID", update_statement=f"UPDATE {database}.REVIEW_QUEUE set AIRFLOW_INGESTED_DATE=NOW() where SID=?")
 # max_messages
 
 queueWatcher = Asset("review_queue_asset", watchers=[
