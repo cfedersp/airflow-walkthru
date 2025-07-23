@@ -66,7 +66,7 @@ cp Downloads/ojdbc11-23.8.0.25.04.jar $AIRFLOW_HOME/lib
 # Create Connections using env vars
 python -m airflow connections create-default-connections
 python -m airflow connections add 'fs_default' --conn-type 'fs'
-python -m airflow connections add 'oracle' --conn-description 'Oracle DB' --conn-uri 'jdbc:oracle:thin:cfederspiel/ocPamBdxbqM7197%@//d1entp-scan.res.prod.global:1521/D1SFRC_BATCH' --conn-extra '{"driver_path":"lib/","driver_class":"oracle.jdbc.OracleDriver"}'
+python -m airflow connections add 'oracle' --conn-description 'Oracle DB' --conn-uri 'jdbc:oracle:thin:cfederspiel/password@//d1entp-scan.res.prod.global:1521/D1SFRC_BATCH' --conn-extra '{"driver_path":"/Users/chafeder/opt/airflow/lib/ojdbc11-23.8.0.25.04.jar","driver_class":"oracle.jdbc.OracleDriver"}'
 python -m airflow connections add 'mysql' --conn-type 'jdbc' --conn-description 'Local DB' --conn-host 'localhost' --conn-port 3306 --conn-login root --conn-password password --conn-extra '{"driver_path":"lib/","driver_class":"oracle.jdbc.OracleDriver"}'
 
 python -m airflow connections add 'redis' --conn-type 'redis' --conn-description 'Staging Redis' --conn-host 'redis-host.company.com' --conn-port 6383 
