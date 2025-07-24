@@ -58,8 +58,8 @@ class JDBCTableTrigger(BaseEventTrigger):
         return hashlib.md5(classpath + self.serialize());
 
 
-database = "cfederspiel"
-sqlTrigger = JDBCTableTrigger(jdbc_conn_id="oracle", interval_seconds=30, ingest_select=f"select SID, REVIEW_TYPE, STATUS, AIRFLOW_INGESTED_DATE, CREATED_DATE from {database}.REVIEW_QUEUE", id_column="SID", update_statement=f"UPDATE {database}.REVIEW_QUEUE set AIRFLOW_INGESTED_DATE=NOW() where SID=?")
+database = "searchforce"
+sqlTrigger = JDBCTableTrigger(jdbc_conn_id="mysql", interval_seconds=30, ingest_select=f"select SID, REVIEW_TYPE, STATUS, AIRFLOW_INGESTED_DATE, CREATED_DATE from {database}.REVIEW_QUEUE", id_column="SID", update_statement=f"UPDATE {database}.REVIEW_QUEUE set AIRFLOW_INGESTED_DATE=NOW() where SID=?", bind_values=())
 # max_messages
 
 queueWatcher = Asset("review_queue_asset", watchers=[

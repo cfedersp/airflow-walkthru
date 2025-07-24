@@ -3,6 +3,7 @@ Later versions may not match existing constraints
 
 # Define and Create a dir for Airflow to store its Configuration, development DAGs, DB, and Users.
 # Should be outside this repo.
+
 export AIRFLOW_HOME=$HOME/opt/airflow
 mkdir -p $AIRFLOW_HOME
 
@@ -27,7 +28,7 @@ alias python3="${VENV_NAME}/bin/python3"
 
 # Airflow requirements depend on the version of python. The Constraint Set dictates the package versions for all required libs.
 
-CONSTRAINT_SET=$(python --version | egrep -o '\d+.\d+')
+CONSTRAINT_SET=$(python --version | egrep -o '[0-9]+.[0-9]+')
 
 # skip celery for now
 python -m pip install "apache-airflow[amazon,aiobotocore]==${AIRFLOW_VERSION}" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${CONSTRAINT_SET}.txt"
@@ -56,21 +57,25 @@ python -m airflow config list --defaults > $AIRFLOW_HOME/airflow.cfg
 'jwt_secret' property must have a value
 Uncomment 'simple_auth_manager_users' so that admin:admin is defined (username:role)
 
-# Setup JDBC Driver
-echo "[providers.jdbc] >> $AIRFLOW_HOME/airflow.cfg
+# Setup JDBC Driver (check if providers.jdbc exists already)
+echo "[providers.jdbc]" >> $AIRFLOW_HOME/airflow.cfg
 echo "allow_driver_path_in_extra = True" >> $AIRFLOW_HOME/airflow.cfg
 echo "allow_driver_class_in_extra = True" >> $AIRFLOW_HOME/airflow.cfg
 mkdir $AIRFLOW_HOME/lib
 cp Downloads/ojdbc11-23.8.0.25.04.jar $AIRFLOW_HOME/lib
 
-# Create Connections using env vars
+# Create Connections using env vars (Can only be done after the db has been initialized)
 python -m airflow connections create-default-connections
 python -m airflow connections add 'fs_default' --conn-type 'fs'
 python -m airflow connections add 'oracle' --conn-description 'Oracle DB' --conn-uri 'jdbc:oracle:thin:cfederspiel/password@//d1entp-scan.res.prod.global:1521/D1SFRC_BATCH' --conn-extra '{"driver_path":"/Users/chafeder/opt/airflow/lib/ojdbc11-23.8.0.25.04.jar","driver_class":"oracle.jdbc.OracleDriver"}'
-python -m airflow connections add 'mysql' --conn-type 'jdbc' --conn-description 'Local DB' --conn-host 'localhost' --conn-port 3306 --conn-login root --conn-password password --conn-extra '{"driver_path":"lib/","driver_class":"oracle.jdbc.OracleDriver"}'
+python -m airflow connections add 'mysql' --conn-type 'jdbc' --conn-description 'Local DB' --conn-host 'localhost' --conn-port 3306 --conn-login root --conn-password password --conn-extra '{"driver_path":"/Users/chafeder/opt/airflow/lib/mysql-connector-j-9.3.0.jar","driver_class":"com.mysql.cj.jdbc.Driver"}'
 
 python -m airflow connections add 'redis' --conn-type 'redis' --conn-description 'Staging Redis' --conn-host 'redis-host.company.com' --conn-port 6383 
 # --conn-extra 'db=0'
+
+# networking, if necessary (didn't work)
+sudo yum install iptables-services
+sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080
 
 # Create mysql db
 Start podman machine, wait for it to start
@@ -80,6 +85,7 @@ podman exec -it airflow-mysql mysql --user=root -p
 create database searchforce;
 use searchforce;
 CREATE TABLE REVIEW_QUEUE (SID int PRIMARY KEY, REVIEW_TYPE int, DESCRIPTION VARCHAR(200), STATUS varchar(20), AIRFLOW_INGESTED_DATE DATE, CREATED_DATE DATE);
+INSERT INTO searchforce.REVIEW_QUEUE (SID, REVIEW_TYPE, DESCRIPTION, STATUS, CREATED_DATE) values (1111, 222222, 'Ready Campaign1', 'READY', NOW());
 
 # Create Oracle DB
 CREATE TABLE cfederspiel.REVIEW_QUEUE (SID int PRIMARY KEY, REVIEW_TYPE int, DESCRIPTION VARCHAR(200), STATUS varchar(20), AIRFLOW_INGESTED_DATE DATE, CREATED_DATE DATE);
