@@ -12,6 +12,10 @@ from airflow.providers.jdbc.hooks.jdbc import JdbcHook
 
 from airflow.models.baseoperator import BaseOperator
 
+import logging
+
+# https://airflow.apache.org/docs/apache-airflow-providers-jdbc/stable/_api/airflow/providers/jdbc/hooks/jdbc/index.html
+# https://airflow.apache.org/docs/apache-airflow-providers-common-sql/stable/_api/airflow/providers/common/sql/hooks/sql/index.html
 
 class JDBCTableTrigger(BaseEventTrigger):
     def __init__(self, jdbc_conn_id, ingest_select, interval_seconds, id_column, update_statement, bind_values=()):
@@ -33,7 +37,11 @@ class JDBCTableTrigger(BaseEventTrigger):
 
 
     async def run(self):
-        hook = JdbcHook(jdbc_conn_id = self.jdbc_conn_id);
+        # first arg can be the connection id or the name of the kwarg containing the connection id
+        hook = JdbcHook(self.jdbc_conn_id); #, driver_path="/home/ec2-user/opt/airflow/lib/mysql-connector-j-8.4.0.jar", driver_class="com.mysql.cj.jdbc.Driver");
+        logging.info(f"read back jdbc jar path: {hook.driver_path}");
+        logging.info(f"read back jdbc driver class: {hook.driver_class}");
+
         while True:
             conn = hook.get_conn();
             cursor = conn.cursor()
