@@ -33,7 +33,9 @@ pip install "apache-airflow[amazon,aiobotocore]==${AIRFLOW_VERSION}" --constrain
 
 # Install Optional dependencies:
 pip install graphviz flask_appbuilder apache-airflow-providers-common-messaging apache-airflow-providers-jdbc
-pip install apache-airflow-providers-mysql
+# pip install apache-airflow-providers-mysql
+pip install apache-airflow-providers-oracle
+
 # pip install apache-airflow-providers-redis
 # pip install apache-airflow-providers-amazon
 

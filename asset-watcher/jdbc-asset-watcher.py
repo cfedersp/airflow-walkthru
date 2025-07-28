@@ -67,8 +67,7 @@ class JDBCTableTrigger(BaseEventTrigger):
 
 
 database = "searchforce"
-sqlTrigger = JDBCTableTrigger(jdbc_conn_id="mysql", interval_seconds=30, ingest_select=f"select SID, REVIEW_TYPE, STATUS, AIRFLOW_INGESTED_DATE, CREATED_DATE from {database}.REVIEW_QUEUE", id_column="SID", update_statement=f"UPDATE {database}.REVIEW_QUEUE set AIRFLOW_INGESTED_DATE=NOW() where SID=?", bind_values=())
-# max_messages
+sqlTrigger = JDBCTableTrigger(jdbc_conn_id="oracle", interval_seconds=30, ingest_select=f"select SID, REVIEW_TYPE, STATUS, AIRFLOW_INGESTED_DATE, CREATED_DATE from {database}.REVIEW_QUEUE where AIRFLOW_INGESTED_DATE is null", id_column="SID", update_statement=f"UPDATE {database}.REVIEW_QUEUE set AIRFLOW_INGESTED_DATE={currentDateSQLFunction} where SID=?")# max_messages
 
 queueWatcher = Asset("review_queue_asset", watchers=[
         AssetWatcher(
