@@ -8,7 +8,7 @@ import asyncio
 import hashlib
 
 from airflow.triggers.base import BaseEventTrigger, TriggerEvent
-from airflow.providers.jdbc.hooks.jdbc import JdbcHook
+from airflow.providers.odbc.hooks.odbc import OdbcHook
 
 from airflow.models.baseoperator import BaseOperator
 
@@ -38,9 +38,9 @@ class JDBCTableTrigger(BaseEventTrigger):
 
     async def run(self):
         # first arg can be the connection id or the name of the kwarg containing the connection id
-        hook = JdbcHook(self.jdbc_conn_id); #, driver_path="/home/ec2-user/opt/airflow/lib/mysql-connector-j-8.4.0.jar", driver_class="com.mysql.cj.jdbc.Driver");
-        logging.info(f"read back jdbc jar path: {hook.driver_path}");
-        logging.info(f"read back jdbc driver class: {hook.driver_class}");
+        hook = OdbcHook(self.jdbc_conn_id); #, driver_path="/home/ec2-user/opt/airflow/lib/mysql-connector-j-8.4.0.jar", driver_class="com.mysql.cj.jdbc.Driver");
+        # logging.info(f"read back jdbc jar path: {hook.driver_path}");
+        # logging.info(f"read back jdbc driver class: {hook.driver_class}");
 
         while True:
             conn = hook.get_conn();
