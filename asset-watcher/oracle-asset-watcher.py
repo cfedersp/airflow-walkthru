@@ -17,7 +17,7 @@ import logging
 # https://airflow.apache.org/docs/apache-airflow-providers-jdbc/stable/_api/airflow/providers/jdbc/hooks/jdbc/index.html
 # https://airflow.apache.org/docs/apache-airflow-providers-common-sql/stable/_api/airflow/providers/common/sql/hooks/sql/index.html
 
-class JDBCTableTrigger(BaseEventTrigger):
+class OracleTableTrigger(BaseEventTrigger):
     def __init__(self, oracle_conn_id, ingest_select, interval_seconds, id_column, update_statement, bind_values=()):
         super().__init__()
         self.oracle_conn_id = oracle_conn_id;
@@ -33,7 +33,7 @@ class JDBCTableTrigger(BaseEventTrigger):
 
     def serialize(self) -> tuple[str, dict[str, Any]]:
         triggerParams = {"oracle_conn_id": self.oracle_conn_id, "ingest_select": self.ingest_select, "interval_seconds": self.interval_seconds, "id_column": self.id_column, "update_statement": self.update_statement, "bind_values": self.bind_values };
-        return ("jdbc-asset-watcher.JDBCTableTrigger", triggerParams );
+        return ("oracle-asset-watcher.OracleTableTrigger", triggerParams );
 
 
     async def run(self):
@@ -55,9 +55,7 @@ class JDBCTableTrigger(BaseEventTrigger):
                 row_dict = dict(zip(column_names, row))
                 idValue = row_dict[self.id_column];
                 cursor.execute(self.update_statement, (idValue, ));
-                conn.commit();
                 yield TriggerEvent(row_dict);
-                return;
             await asyncio.sleep(self.interval_seconds)
     def cleanup(): # Parent impl should be OK - DELETE THIS
         return
@@ -66,9 +64,9 @@ class JDBCTableTrigger(BaseEventTrigger):
         return hashlib.md5(classpath + self.serialize());
 
 
-database = "kunjsao"
+database = "cfederspiel"
 currentDateSQLFunction = "SYSDATE"
-sqlTrigger = JDBCTableTrigger(oracle_conn_id="oracle_default", interval_seconds=30, ingest_select=f"select SID, REVIEW_TYPE, STATUS, AIRFLOW_INGESTED_DATE, CREATED_DATE from {database}.REVIEW_QUEUE where AIRFLOW_INGESTED_DATE is null", id_column="SID", update_statement=f"UPDATE {database}.REVIEW_QUEUE set AIRFLOW_INGESTED_DATE={currentDateSQLFunction} where SID=?")# max_messages
+sqlTrigger = OracleTableTrigger(oracle_conn_id="oracle", interval_seconds=30, ingest_select=f"select SID, REVIEW_TYPE, STATUS, AIRFLOW_INGESTED_DATE, CREATED_DATE from {database}.REVIEW_QUEUE where AIRFLOW_INGESTED_DATE is null", id_column="SID", update_statement=f"UPDATE {database}.REVIEW_QUEUE set AIRFLOW_INGESTED_DATE={currentDateSQLFunction} where SID=?")# max_messages
 
 queueWatcher = Asset("review_queue_asset", watchers=[
         AssetWatcher(

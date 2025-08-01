@@ -55,9 +55,7 @@ class JDBCTableTrigger(BaseEventTrigger):
                 row_dict = dict(zip(column_names, row))
                 idValue = row_dict[self.id_column];
                 cursor.execute(self.update_statement, (idValue, ));
-                conn.commit();
                 yield TriggerEvent(row_dict);
-                return;
             await asyncio.sleep(self.interval_seconds)
     def cleanup(): # Parent impl should be OK - DELETE THIS
         return
