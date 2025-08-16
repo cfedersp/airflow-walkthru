@@ -130,6 +130,9 @@ By default, this folder is $AIRFLOW_HOME/dags. Copy your python script there, re
 Example:
 cp config-workflow/file-sensor.py $AIRFLOW_HOME/dags/
 
+Pause a faulty DAG
+airflow dags pause review_queue_pipeline
+
 Delete DAG metadata from DB:
 airflow dags delete ProcessFileForDay
 
