@@ -1,3 +1,4 @@
-local/lib
-local/bin
-local/include
+**/pyvenv.cfg
+**/lib
+**/bin
+**/include
